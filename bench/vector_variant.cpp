@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include <benchmark/benchmark.h>
-#include "../varvector.h" // Should not be relative
+#include "varvector.h" // Should not be relative
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
