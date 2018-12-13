@@ -19,6 +19,7 @@ struct IShape {
 
     IShape() : center{} {}
     IShape(const Coo& c) : center(c) {}
+    virtual ~IShape() {}
 
     virtual std::size_t perimeter() const = 0;
 
@@ -30,6 +31,7 @@ struct ASquare : public IShape {
         : IShape(), side(s) {}
     ASquare(const Coo& c, std::size_t s)
         : IShape(c), side(s) {}
+    virtual ~ASquare() {}
 
     std::size_t perimeter() const override {
         std::size_t p = side * 4;
@@ -47,6 +49,7 @@ struct ATriangle : public IShape {
         : IShape(), a(p1), b(p2), c(p3) {}
     ATriangle(const Coo& c, std::size_t p1,std::size_t p2,std::size_t p3)
         : IShape(c), a(p1), b(p2), c(p3) {}
+    virtual ~ATriangle() {}
 
     std::size_t perimeter() const override {
         std::size_t p = a + b + c;
