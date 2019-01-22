@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "compact_idxv2.h"
+#include "exp/compact_idxv2.h"
 
 int main() {
     compact_idx<254, uint8_t> idx;

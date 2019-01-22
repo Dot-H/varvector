@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include "compact_idx.h"
 
 /*********************************************
  *             varvector details             *
