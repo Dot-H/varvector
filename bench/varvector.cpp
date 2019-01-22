@@ -1,15 +1,20 @@
 #include <vector>
 #include <variant>
 #include <string>
-#include <iostream>
+#include <random>
 
 #include <stdlib.h>
 
 #include <benchmark/benchmark.h>
-#include "varvector.h" // Should not be relative
+#include "varvector.h"
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template<class... Ts>
+struct overloaded : Ts... { 
+    using Ts::operator()...;
+};
+
+template<class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 struct IShape {
     struct Coo {
@@ -79,7 +84,7 @@ struct CRTPShape {
     Coo center;
 };
 
-struct CRTPSquare : public CRTPShape<ASquare> {
+struct CRTPSquare : public CRTPShape<CRTPSquare> {
     CRTPSquare(std::size_t s)
         : CRTPShape(), side(s) {}
     CRTPSquare(const Coo& c, std::size_t s)
@@ -94,7 +99,7 @@ struct CRTPSquare : public CRTPShape<ASquare> {
     std::size_t side = 0;
 };
 
-struct CRTPTriangle : public CRTPShape<ATriangle> {
+struct CRTPTriangle : public CRTPShape<CRTPTriangle> {
     CRTPTriangle()
         : CRTPShape() {}
     CRTPTriangle(std::size_t p1,std::size_t p2,std::size_t p3)
@@ -113,48 +118,32 @@ struct CRTPTriangle : public CRTPShape<ATriangle> {
     std::size_t c = 0;
 };
 
-static inline void init_vec(std::vector<IShape*>& dst, const std::size_t n) {
-  srand(42);
-  for (std::size_t i = 0; i < n; ++i) {
-      if (rand() % 2) {
-          dst.push_back(new ATriangle(i, i + 1, i +2));
-      } else {
-          dst.push_back(new ASquare(i));
-      }
-  }
+template <class T>
+static inline void init_vec(T& dst, const std::size_t n) {
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution uniform_dist(0, 1);
+    for (std::size_t i = 0; i < n; ++i) {
+        if (uniform_dist(e1) == 0) {
+            dst.push_back(CRTPTriangle(i, i + 1, i +2));
+        } else {
+            dst.push_back(CRTPSquare(i));
+        }
+    }
 }
 
-static inline void init_vec(std::vector<std::variant<CRTPTriangle, CRTPSquare>>& dst, const std::size_t n) {
-  srand(42);
-  for (std::size_t i = 0; i < n; ++i) {
-      if (rand() % 2) {
-          dst.emplace_back(CRTPTriangle(i, i + 1, i +2));
-      } else {
-          dst.emplace_back(CRTPSquare(i));
-      }
-  }
-}
-
-static inline void init_vec(varvector<CRTPTriangle, CRTPSquare>& dst, const std::size_t n) {
-  srand(42);
-  for (std::size_t i = 0; i < n; ++i) {
-      if (rand() % 2) {
-          dst.push_back(CRTPTriangle(i, i + 1, i +2));
-      } else {
-          dst.push_back(CRTPSquare(i));
-      }
-  }
-}
-
-static inline void init_vec(stable_varvector<CRTPTriangle, CRTPSquare>& dst, const std::size_t n) {
-  srand(42);
-  for (std::size_t i = 0; i < n; ++i) {
-      if (rand() % 2) {
-          dst.push_back(CRTPTriangle(i, i + 1, i +2));
-      } else {
-          dst.push_back(CRTPSquare(i));
-      }
-  }
+template <>
+inline void init_vec(std::vector<IShape*>& dst, const std::size_t n) {
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution uniform_dist(0, 1);
+    for (std::size_t i = 0; i < n; ++i) {
+        if (uniform_dist(e1) == 0) {
+            dst.push_back(new ATriangle(i, i + 1, i +2));
+        } else {
+            dst.push_back(new ASquare(i));
+        }
+    }
 }
 
 static void BM_VirtuIterate(benchmark::State& state) {
@@ -170,9 +159,7 @@ static void BM_VirtuIterate(benchmark::State& state) {
       delete el;
   }
 }
-//
-// Register the function as a benchmark
-//BENCHMARK(BM_VirtuIterate)->Range(8, 8<<15);
+BENCHMARK(BM_VirtuIterate)->Range(8, 8<<15);
 
 static void BM_VariantIterate(benchmark::State& state) {
   std::vector<std::variant<CRTPTriangle, CRTPSquare>> v;
@@ -187,7 +174,7 @@ static void BM_VariantIterate(benchmark::State& state) {
   }
 }
 
-//BENCHMARK(BM_VariantIterate)->Range(8, 8<<15);
+BENCHMARK(BM_VariantIterate)->Range(8, 8<<15);
 
 static void BM_VarvectorIterate(benchmark::State& state) {
   varvector<CRTPTriangle, CRTPSquare> v;
@@ -199,7 +186,7 @@ static void BM_VarvectorIterate(benchmark::State& state) {
   }
 }
 
-//BENCHMARK(BM_VarvectorIterate)->Range(8, 8<<15);
+BENCHMARK(BM_VarvectorIterate)->Range(8, 8<<15);
 
 static void BM_StableVarvectorIterate(benchmark::State& state) {
   stable_varvector<CRTPTriangle, CRTPSquare> v;
@@ -212,5 +199,33 @@ static void BM_StableVarvectorIterate(benchmark::State& state) {
 }
 
 BENCHMARK(BM_StableVarvectorIterate)->Range(8, 8<<15);
+
+static void BM_VariantPushBack(benchmark::State& state) {
+    std::vector<std::variant<CRTPTriangle, CRTPSquare>> v;
+    for (auto _ : state) {
+        init_vec(v, state.range(0));
+    }
+}
+
+BENCHMARK(BM_VariantPushBack)->Range(8, 8<<15);
+
+static void BM_VarvectorPushBack(benchmark::State& state) {
+    varvector<CRTPTriangle, CRTPSquare> v;
+    for (auto _ : state) {
+        init_vec(v, state.range(0));
+    }
+}
+
+BENCHMARK(BM_VarvectorPushBack)->Range(8, 8<<15);
+
+static void BM_StableVarvectorPushBack(benchmark::State& state) {
+    stable_varvector<CRTPTriangle, CRTPSquare> v;
+    for (auto _ : state) {
+        init_vec(v, state.range(0));
+    }
+}
+
+BENCHMARK(BM_StableVarvectorPushBack)->Range(8, 8<<15);
+
 
 BENCHMARK_MAIN();
