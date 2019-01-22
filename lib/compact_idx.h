@@ -40,6 +40,12 @@ struct compact_idx {
     iterator begin() const { return iterator{0, pool.data()}; }
     iterator end()   const { return iterator{bit_off, pool.data()}; }
 
+    std::size_t size() const { return bit_off / NBBITS_MAX; }
+    std::size_t pool_size() const { return pool.size(); }
+    constexpr std::size_t nbbits_uint() const { return NBBITS_UINT; }
+    constexpr std::size_t nbbits_max() const { return NBBITS_MAX; }
+    const UINT* data() const { return pool.data(); }
+
     void push_back(uint8_t val) {
         const std::size_t idx = bit_off / NBBITS_UINT;
         UINT* bitset = reinterpret_cast<UINT*>(pool.data() + idx);
