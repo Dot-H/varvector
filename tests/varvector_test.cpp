@@ -1,7 +1,7 @@
 #include <iostream>
 #include "varvector.h"
 
-int main(int argc, char* argv[])
+int main()
 {
     stable_varvector<int, char, bool> v;
     v.push_back(10);
