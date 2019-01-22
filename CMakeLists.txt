@@ -37,7 +37,8 @@ else()
     target_compile_options(bench PUBLIC ${optimization_flag})
     target_include_directories(bench
         PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+            ${CMAKE_CURRENT_SOURCE_DIR}/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/bench)
 endif()
 
 ## Varvector test binary: `varvector_test`
