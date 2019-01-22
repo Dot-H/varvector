@@ -25,7 +25,7 @@ constexpr int find_T() {
 }
 
 template <std::uint8_t N, typename Tuple, typename Func>
-constexpr void foreachcont_impl(Tuple& tpl, Func fn) {
+constexpr void foreachcont_impl(const Tuple& tpl, Func fn) {
     if constexpr (N < std::tuple_size_v<Tuple>) {
         const auto& container = std::get<N>(tpl);
         for (auto&& el : container) {
@@ -36,7 +36,7 @@ constexpr void foreachcont_impl(Tuple& tpl, Func fn) {
 }
 
 template <std::uint8_t N, typename Tuple, typename Func>
-constexpr void foreach_impl(Tuple& tpl, Func fn) {
+constexpr void foreach_impl(const Tuple& tpl, Func fn) {
     if constexpr (N < std::tuple_size_v<Tuple>) {
         fn(std::get<N>(tpl));
         foreach_impl<N+1>(tpl, fn);
@@ -124,7 +124,7 @@ protected:
  *********************************************/
 
 template <typename... Ts>
-struct stable_varvector : public varvector<Ts...> {
+class stable_varvector : public varvector<Ts...> {
 public:
     template <typename T>
     constexpr void push_back(T&& value) {
@@ -168,7 +168,7 @@ private:
 
     template <typename T>
     constexpr void _registerPosition() {
-        constexpr std::uint8_t val = details::find_T<T, Ts...>();
+        std::uint8_t val = details::find_T<T, Ts...>();
         insertionsOrder.push_back(val);
     }
 };
