@@ -125,6 +125,17 @@ static inline void init_vec(T& dst, const std::size_t n) {
     }
 }
 
+template <class T>
+static inline void init_idx(T& dst, const std::size_t nel,
+                            const std::size_t min, const std::size_t max) {
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution uniform_dist(min, max);
+    for (std::size_t i = 0; i < nel; ++i) {
+        dst.push_back(uniform_dist(e1));
+    }
+}
+
 template <>
 inline void init_vec(std::vector<IShape*>& dst, const std::size_t n) {
     std::random_device r;
